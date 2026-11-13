@@ -2,8 +2,8 @@
 
 A SystemVerilog implementation of the RISC-V RV32I base integer instruction set on a
 classic five-stage in-order pipeline, with full forwarding, load-use hazard detection
-and branch flushing. Verified with block-level unit tests and self-checking programs
-assembled with RARS.
+and branch flushing. Verified with block-level unit tests, six self-checking programs
+assembled with RARS, and 23 pipeline assertions.
 
 ## Features
 
@@ -47,14 +47,16 @@ assembled with RARS.
 | `rtl/riscv_core.sv` | Five-stage pipeline, halt logic, performance counters |
 | `rtl/imem.sv`, `rtl/dmem.sv` | Instruction ROM and data RAM |
 | `rtl/riscv_top.sv` | Core with memories |
+| `sva/riscv_sva.sv` | Pipeline assertions, bound to `riscv_core` |
 | `tb/tb_units.sv` | Unit tests for the datapath and decode blocks |
-| `tb/tb_riscv.sv` | Program runner: loads a hex image, runs to `ECALL`, reports result and CPI |
-| `tests/*.s` | Self-checking test programs (RARS assembly) |
+| `tb/tb_riscv.sv` | Runs the test programs and prints a results table |
+| `tests/*.s` | Self-checking test programs (RARS assembly) and their hex images |
 
 ## Verification
 
-**Unit tests (`tb/tb_units.sv`)**: known-answer and randomized checks against
-reference models.
+### Unit tests (`tb/tb_units.sv`)
+
+Known-answer and randomized checks against reference models.
 
 | Block | Checks |
 |-------|--------|
@@ -64,30 +66,59 @@ reference models.
 | Immediate generator | 2,000 random immediates × 5 formats |
 | Decoder | all RV32I instructions + 15 reserved/unsupported encodings |
 
-**Program tests (`tb/tb_riscv.sv`)**: each program checks its own results and ends
-with `a0 = 0` on pass or `a0 = <failing check>` on failure. `+PIPE` prints the
-pipeline every cycle (PC in each stage, stalls, flushes, forwarding, register and
-memory writes); `+TRACE` prints each retired instruction.
+### Test programs (`tests/`)
+
+Each program checks its own results and ends with `a0 = 0` on pass or
+`a0 = <failing check>` on failure. Every program was first run on RARS as a
+reference, then on the core.
+
+| Program | Coverage |
+|---------|----------|
+| `smoke.s` | Forwarding from each stage, load-use, byte/halfword access, branch flush with a squashed store, JAL/JALR, LUI/AUIPC |
+| `alu.s` | All register and immediate ALU instructions: overflow wrap, immediate limits, sign extension, shift amounts above 31, signed vs unsigned compares |
+| `mem.s` | Every load/store size and byte lane, negative offsets, loaded value used as the next address, store followed by load of the same word |
+| `branch.s` | All six branch conditions taken and not taken with extreme operands, loops, JALR with offset, jump table, three-level nested calls |
+| `hazard.s` | Forwarding priority, load into x0, chained loads, AUIPC forwarding, branches and ECALL on the wrong path, back-to-back taken branches |
+| `sort.s` | Bubble sort of 16 signed words, checked for order and for the same sum and XOR as the input |
+
+### Assertions (`sva/riscv_sva.sv`)
+
+| Area | Properties |
+|------|------------|
+| Fetch / redirect | PC word-aligned; target aligned; PC takes the target; IF/ID and ID/EX flushed |
+| Load-use | PC and IF/ID hold during a stall; bubble inserted; no load result consumed from EX/MEM; no unresolved load-use reaches EX |
+| Bubbles | An invalid ID/EX or EX/MEM slot carries no control signals |
+| Architectural | x0 stays zero; no X on fetched instructions, EX operands or write-back data; aligned loads and stores |
+| Halt | Fetch stops and PC freezes after ECALL/EBREAK; no register or memory writes once halted |
 
 ## Results
 
-| Program | Instructions | Cycles | CPI | Load-use stalls | Taken branches/jumps | Result |
-|---------|--------------|--------|-----|-----------------|----------------------|--------|
-| `smoke.s` | 135 | 159 | 1.178 | 4 | 8 | Pass |
+Simulated with Questa 2025.2. All programs pass with no assertion failures.
 
-Cycle count = instructions + stall cycles + 2 × taken branches/jumps + 4 (pipeline fill).
-A cycle-by-cycle pipeline trace of `smoke.s` is in `sim/smoke_pipeline.txt`.
+| Program | Instructions | Cycles | CPI | Load-use stalls | Taken branches/jumps |
+|---------|-------------:|-------:|----:|----------------:|---------------------:|
+| `smoke.s`  |   135 |   159 | 1.178 |   4 |   8 |
+| `alu.s`    |   150 |   156 | 1.040 |   0 |   1 |
+| `mem.s`    |   118 |   134 | 1.136 |  10 |   1 |
+| `branch.s` |   128 |   206 | 1.609 |   2 |  36 |
+| `hazard.s` |    77 |    99 | 1.286 |   6 |   6 |
+| `sort.s`   | 1,318 | 1,905 | 1.445 | 145 | 219 |
+
+For every program, cycles = instructions + stall cycles + 2 × taken branches/jumps + 4
+(pipeline fill), which confirms the stall and flush penalties are exactly one and two
+cycles. A cycle-by-cycle pipeline trace of `smoke.s` is in `sim/smoke_pipeline.txt`.
 
 ## Running
 
 Programs are assembled with [RARS](https://github.com/TheThirdOne/rars) using
 *Settings → Memory Configuration → Compact, Text at Address 0*, and the `.text`
-segment is exported with *File → Dump Memory* (Hexadecimal Text).
+segment is exported with *File → Dump Memory* (Hexadecimal Text) as `tests/<name>.hex`.
 
 ```
 cd sim
 vsim -c -do run_units.do       # unit tests
-vsim -c -do run_program.do     # runs tests/smoke.hex
+vsim -c -do run_tests.do       # all test programs, with assertions
 ```
 
-Simulated with Questa 2025.2.
+`tb_riscv` options: `+PROG=<file>` runs a single image, `+PIPE` prints the pipeline
+every cycle, `+TRACE` prints each retired instruction.

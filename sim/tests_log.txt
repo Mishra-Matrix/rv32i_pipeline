@@ -1,0 +1,33 @@
+
+---- smoke.hex ----
+[smoke.hex] PASS
+
+---- alu.hex ----
+[alu.hex] PASS
+
+---- mem.hex ----
+[mem.hex] PASS
+
+---- branch.hex ----
+[branch.hex] PASS
+
+---- hazard.hex ----
+[hazard.hex] PASS
+
+---- sort.hex ----
+[sort.hex] PASS
+
+========================= RV32I TEST RESULTS =========================
+ Program       Instr   Cycles    CPI   Stalls  Br/Jmp   Result
+ -----------  ------  -------  -----  -------  ------   ------
+ smoke.hex       135      159  1.178        4       8   PASS
+ alu.hex         150      156  1.040        0       1   PASS
+ mem.hex         118      134  1.136       10       1   PASS
+ branch.hex      128      206  1.609        2      36   PASS
+ hazard.hex       77       99  1.286        6       6   PASS
+ sort.hex       1318     1905  1.445      145     219   PASS
+ -----------------------------------------------------------------------
+ 6 of 6 programs passed
+ RESULT : *** ALL TESTS PASSED ***
+=======================================================================
+ Any assertion failure is reported above as an "SVA:" error.
