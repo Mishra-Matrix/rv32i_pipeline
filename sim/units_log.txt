@@ -1,0 +1,102 @@
+[2026-11-13 18:26:05 UTC] qrun -batch -access=rw+/. '-timescale' '1ns/1ns' -mfcu design.sv testbench.sv '-voptargs=+acc=npr'  -do  " run -all; exit"  
+QuestaSim-64 qrun 2025.2 Utility 2025.05 May 31 2025
+Start time: 13:26:05 on Nov 13,2026
+qrun -batch -access=rw+/. -timescale 1ns/1ns -mfcu design.sv testbench.sv -voptargs="+acc=npr" -do " run -all; exit" 
+** Note: (qrun-220) 'modelsim.ini' is used as the ini file.
+Creating library 'qrun.out/work'.
+QuestaSim-64 vlog 2025.2 Compiler 2025.05 May 31 2025
+Start time: 13:26:05 on Nov 13,2026
+vlog -timescale 1ns/1ns -mfcu design.sv testbench.sv -work qrun.out/work -statslog qrun.out/stats_log -csession=incr 
+** Note: (vlog-220) 'modelsim.ini' is used as the ini file.
+-- Compiling package riscv_pkg
+-- Compiling module alu
+-- Importing package riscv_pkg
+-- Compiling module branch_cmp
+-- Compiling module regfile
+-- Compiling module imm_gen
+-- Compiling module control
+-- Compiling module tb_units
+
+Top level modules:
+	tb_units
+End time: 13:26:05 on Nov 13,2026, Elapsed time: 0:00:00
+Errors: 0, Warnings: 0
+QuestaSim-64 vopt 2025.2 Compiler 2025.05 May 31 2025
+** Warning: (vopt-10587) Some optimizations are turned off because the +acc switch is in effect. This will cause your simulation to run slowly. Please use -access/-debug to maintain needed visibility. The +acc switch would be deprecated in a future release.
+Start time: 13:26:05 on Nov 13,2026
+vopt -access=rw+/. -timescale 1ns/1ns -mfcu "+acc=npr" -findtoplevels qrun.out/work+2+ -work qrun.out/work -statslog qrun.out/stats_log -csession=incr -o qrun_opt -csessionid=3 
+** Note: (vopt-220) 'modelsim.ini' is used as the ini file.
+
+Top level modules:
+	tb_units
+
+Analyzing design...
+-- Loading module tb_units
+-- Importing package riscv_pkg
+-- Loading module alu
+-- Loading module branch_cmp
+-- Loading module regfile
+-- Loading module imm_gen
+-- Loading module control
+Optimizing 7 design-units (inlining 0/6 module instances):
+-- Optimizing package riscv_pkg(fast)
+-- Optimizing module tb_units(fast)
+-- Optimizing module control(fast)
+-- Optimizing module alu(fast)
+-- Optimizing module imm_gen(fast)
+-- Optimizing module regfile(fast)
+-- Optimizing module branch_cmp(fast)
+Optimized design name is qrun_opt
+End time: 13:26:06 on Nov 13,2026, Elapsed time: 0:00:01
+Errors: 0, Warnings: 1
+# ** Note: (vsim-220) 'modelsim.ini' is used as the ini file.
+# vsim -batch -lib qrun.out/work -do " run -all; exit" -statslog qrun.out/stats_log qrun_opt -appendlog -l qrun.log 
+# Start time: 13:26:06 on Nov 13,2026
+# //  Questa Sim-64
+# //  Version 2025.2 linux_x86_64 May 31 2025
+# //
+# // Unpublished work. Copyright 2025 Siemens
+# //
+# // This material contains trade secrets or otherwise confidential information
+# // owned by Siemens Industry Software Inc. or its affiliates (collectively,
+# // "SISW"), or its licensors. Access to and use of this information is strictly
+# // limited as set forth in the Customer's applicable agreements with SISW.
+# //
+# // This material may not be copied, distributed, or otherwise disclosed outside
+# // of the Customer's facilities without the express written permission of SISW,
+# // and may not be used in any way not expressly authorized by SISW.
+# //
+# Loading sv_std.std
+# Loading work.riscv_pkg(fast)
+# Loading work.tb_units(fast)
+# Loading work.alu(fast)
+# Loading work.branch_cmp(fast)
+# Loading work.regfile(fast)
+# Loading work.imm_gen(fast)
+# Loading work.control(fast)
+# 
+# run -all
+# Running RV32I unit tests
+# [5014000] ALU: 5014 checks, 0 errors -> PASS
+# [8020000] BRANCH_CMP: 3006 checks, 0 errors -> PASS
+# [28420000] REGFILE: 4067 checks, 0 errors -> PASS
+# [38421000] IMM_GEN: 10001 checks, 0 errors -> PASS
+# [38477000] CONTROL: 58 checks, 0 errors -> PASS
+# 
+# ================ RV32I UNIT TEST SUMMARY ================
+#  Checks : 22146
+#  Errors : 0
+#  RESULT : *** TEST PASSED ***
+# =========================================================
+# ** Note: $finish    : testbench.sv(413)
+#    Time: 38477 ns  Iteration: 0  Instance: /tb_units
+# End time: 13:26:07 on Nov 13,2026, Elapsed time: 0:00:01
+# Errors: 0, Warnings: 0
+End time: 13:26:07 on Nov 13,2026, Elapsed time: 0:00:02
+*** Summary *********************************************
+    qrun: Errors:   0, Warnings:   0
+    vlog: Errors:   0, Warnings:   0
+    vopt: Errors:   0, Warnings:   1
+    vsim: Errors:   0, Warnings:   0
+  Totals: Errors:   0, Warnings:   1
+Done
